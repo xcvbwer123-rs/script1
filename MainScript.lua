@@ -1,8 +1,3 @@
--- Gui to Lua
--- Version: 3.2
-
--- Instances:
-
 local MainGui = Instance.new("ScreenGui")
 local Frame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
@@ -21,8 +16,6 @@ local Noclip = Instance.new("TextButton")
 local OffNoclip = Instance.new("TextButton")
 local TPNoob = Instance.new("TextButton")
 local GetAllItem = Instance.new("TextButton")
-
---Properties:
 
 local s = pcall(function()
 	game.CoreGui.Name = game.CoreGui.Name
@@ -551,10 +544,6 @@ spawn(function()
 
 	local nocons = {}
 
-	------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	-- @CloneTrooper1019, 2015
-	------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 	local c = workspace.CurrentCamera
 	local player = game.Players.LocalPlayer
 	local userInput = game:GetService("UserInputService")
@@ -625,38 +614,7 @@ spawn(function()
 			NoclipOn = false
 		end
 	end
-
-	--spawn(function()
-	--	while true do
-	--		if GetDeadState(Player) == false then
-	--			if NoclipOn then
-	--				if GetRigType() == Enum.HumanoidRigType.R6 then
-	--					Player.Character:FindFirstChild("Torso").CanCollide            = false
-	--					Player.Character:FindFirstChild("Head").CanCollide             = false
-	--					Player.Character:FindFirstChild("HumanoidRootPart").CanCollide = false
-	--				elseif GetRigType() == Enum.HumanoidRigType.R15 then
-	--					Player.Character:FindFirstChild("UpperTorso").CanCollide       = false
-	--					Player.Character:FindFirstChild("LowerTorso").CanCollide       = false
-	--					Player.Character:FindFirstChild("Head").CanCollide             = false
-	--					Player.Character:FindFirstChild("HumanoidRootPart").CanCollide = false
-	--				end
-	--			else
-	--				if GetRigType() == Enum.HumanoidRigType.R6 then
-	--					Player.Character:FindFirstChild("Torso").CanCollide            = true
-	--					Player.Character:FindFirstChild("Head").CanCollide             = true
-	--					Player.Character:FindFirstChild("HumanoidRootPart").CanCollide = true
-	--				elseif GetRigType() == Enum.HumanoidRigType.R15 then
-	--					Player.Character:FindFirstChild("UpperTorso").CanCollide       = true
-	--					Player.Character:FindFirstChild("LowerTorso").CanCollide       = true
-	--					Player.Character:FindFirstChild("Head").CanCollide             = true
-	--					Player.Character:FindFirstChild("HumanoidRootPart").CanCollide = true
-	--				end
-	--			end
-	--		end
-	--		Swait()
-	--	end
-	--end)
-
+		
 	local FlyOn = false
 
 	function Funcs.Fly()
