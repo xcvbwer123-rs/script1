@@ -23,6 +23,7 @@ local OffNoclip = Instance.new("TextButton")
 local TPNoob = Instance.new("TextButton")
 local GetAllItem = Instance.new("TextButton")
 local PathAdorn = Instance.new("SphereHandleAdornment")
+local NoobFrame = Instance.new("Frame")
 
 --Properties:
 
@@ -38,6 +39,7 @@ else
 end
 MainGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 MainGui.ResetOnSpawn = false
+MainGui.IgnoreGuiInset = true
 
 local pff = Instance.new("Folder", workspace.Terrain)
 pff.Name = "PathFinding"
@@ -52,6 +54,10 @@ Frame.BorderColor3 = Color3.fromRGB(0, 154, 255)
 Frame.BorderSizePixel = 5
 Frame.Position = UDim2.new(0.574999988, 0, 0.349999994, 0)
 Frame.Size = UDim2.new(0.200000003, 0, 0.400000006, 0)
+
+NoobFrame.Parent = MainGui
+NoobFrame.Size = UDim2.new(1, 0, 1, 0)
+NoobFrame.BackgroundTransparency = 1
 
 Title.Name = "Title"
 Title.Parent = Frame
@@ -70,6 +76,7 @@ Title.TextStrokeColor3 = Color3.fromRGB(33, 140, 255)
 Title.TextWrapped = true
 
 PathAdorn.AlwaysOnTop = true
+PathAdorn.ZIndex = 0
 
 Main.Name = "Main"
 Main.Parent = Frame
@@ -154,20 +161,6 @@ GodOn.TextColor3 = Color3.fromRGB(252, 255, 64)
 GodOn.TextSize = 20.000
 GodOn.TextWrapped = true
 
-MoveToNoob.Name = "MoveToNoob"
-MoveToNoob.Parent = Main
-MoveToNoob.BackgroundColor3 = Color3.fromRGB(47, 47, 47)
-MoveToNoob.BorderColor3 = Color3.fromRGB(0, 154, 255)
-MoveToNoob.BorderSizePixel = 5
-MoveToNoob.Position = UDim2.new(0, 0, 0.215000004, 0)
-MoveToNoob.Size = UDim2.new(1.005, 0, 0.0799999982, 0)
-MoveToNoob.ZIndex = 4
-MoveToNoob.Font = Enum.Font.SciFi
-MoveToNoob.Text = "Move To Noob [J]"
-MoveToNoob.TextColor3 = Color3.fromRGB(248, 171, 255)
-MoveToNoob.TextSize = 20.000
-MoveToNoob.TextWrapped = true
-
 GodOff.Name = "GodOff"
 GodOff.Parent = Main
 GodOff.BackgroundColor3 = Color3.fromRGB(47, 47, 47)
@@ -237,6 +230,20 @@ OffNoclip.Text = "Off Noclip [V]"
 OffNoclip.TextColor3 = Color3.fromRGB(255, 123, 255)
 OffNoclip.TextSize = 20.000
 OffNoclip.TextWrapped = true
+
+MoveToNoob.Name = "MoveToNoob"
+MoveToNoob.Parent = Main
+MoveToNoob.BackgroundColor3 = Color3.fromRGB(47, 47, 47)
+MoveToNoob.BorderColor3 = Color3.fromRGB(0, 154, 255)
+MoveToNoob.BorderSizePixel = 5
+MoveToNoob.Position = UDim2.new(0, 0, 0.215000004, 0)
+MoveToNoob.Size = UDim2.new(1.005, 0, 0.0799999982, 0)
+MoveToNoob.ZIndex = 4
+MoveToNoob.Font = Enum.Font.SciFi
+MoveToNoob.Text = "Move To Noob [J]"
+MoveToNoob.TextColor3 = Color3.fromRGB(248, 171, 255)
+MoveToNoob.TextSize = 20.000
+MoveToNoob.TextWrapped = true
 
 TPNoob.Name = "TPNoob"
 TPNoob.Parent = Main
@@ -514,25 +521,11 @@ spawn(function()
 		end
 	end
 	
-	function Funcs.PathFinding(destination: Vector3)
-		Funcs.Wait()
+	local function Xray_Path(waypoints, destination: Vector3)
 		pff:ClearAllChildren()
-		local pathfindingService = game:GetService("PathfindingService")
-		
-		local humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
-		local body = Funcs.GetTorso()
-		local TS = game:GetService("TweenService")
-		local info  = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 0, false, 0)
-		local path = pathfindingService:CreatePath()
-
-		path:ComputeAsync(body.Position, destination)
-		
-		local waypoints = path:GetWaypoints()
-
 		local function turnto(RootPart, position)
 			RootPart.CFrame=CFrame.new(RootPart.CFrame.p,Vector3.new(position.X,position.Y,position.Z)) * CFrame.new(0, 0, 0)
 		end
-
 		for _, v in pairs(waypoints) do
 			local plt = Instance.new("Part", pff)
 			local Av = Instance.new("StringValue", plt)
@@ -547,55 +540,115 @@ spawn(function()
 			Adorn.Color3 = plt.Color
 			Adorn.Adornee = plt
 			Adorn.Parent = plt
-			Adorn.Radius = 1.5
+			Adorn.Radius = .8
 			plt.Material = Enum.Material.Neon
 			plt.CanCollide = false
 			plt.Shape = "Ball"
 		end
-
-		humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
-		for k, waypoint in pairs(pff:GetChildren()) do
-			--local TW = TS:Create(body, info, {CFrame = waypoint.CFrame * CFrame.new(0, 10, 0)})
-			--TW:Play()
-
-			humanoid:MoveTo(waypoint.Position)
-			if waypoint:FindFirstChild("Action").Value == tostring(Enum.PathWaypointAction.Jump) then
-				humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-			end
-			humanoid.MoveToFinished:Wait()
-
-			--TW.Completed:Wait()
-		end
-		humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
-		return
 	end
 	
-	function Funcs.MoveTNoob()
-		Funcs.Wait()
-		if workspace:FindFirstChild("Noobs", true) then
-			local Hum = Player.Character:FindFirstChildOfClass("Humanoid")
-			Hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
-			for _, v in pairs(workspace.Noobs:GetChildren()) do
-				local getpart = v:FindFirstChild("GetPart", true)
-				if not getpart then
-					continue
-				else
-					if getpart.Parent.Rarity.Value == 7 then
-						warn("Limited")
-						continue
-					end
-					local Torso = Funcs.GetTorso()
-					pcall(function()
-						Torso.CFrame = workspace.SpawnLocation.CFrame
-					end)
-					Funcs.PathFinding(getpart.Position)
-					wait(0.2)
-				end
+	local Connections = {}
+	
+	function Funcs.PathFinding(destination: Vector3)
+		local PathfindingService = game:GetService("PathfindingService")
+		
+		local Keys = {
+			"w","a","s","d","up","down"
+		}
+
+		mouse.KeyDown:Connect(function(key)
+			local key = key:lower()
+			if table.find(Keys, key) then
+				pff:ClearAllChildren()
+				return false
 			end
-			Hum:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
-		else
-			warn("Noobs Folder is not found in WorkSpace")
+		end)
+		
+		local path = PathfindingService:CreatePath({
+			AgentRadius = 5,
+			AgentHeight = Player.Character:FindFirstChildOfClass("Humanoid").HipHeight,
+			AgentCanJump = true,
+			Costs = {
+				Water = -(50000)
+			}
+		})
+		
+		local character = Player.Character
+		local humanoid = character:WaitForChild("Humanoid")
+		
+		local TheResult = nil
+		
+		local waypoints
+		local nextWaypointIndex
+		local reachedConnection
+		local blockedConnection
+		
+		local BlockedNumber = 0
+		
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+		
+		local function followPath(destination)
+			Funcs.Wait()
+			local success, errorMessage = pcall(function()
+				path:ComputeAsync(character.PrimaryPart.Position, destination)
+			end)
+			
+			Connection = Player.Character:WaitForChild("HumanoidRootPart").Touched:Connect(function(v)
+				if not v:IsDescendantOf(Player.Character) then
+					humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+				end
+			end)
+			
+			table.insert(Connections, Connection)
+			
+			if success and path.Status == Enum.PathStatus.Success then
+				waypoints = path:GetWaypoints()
+				Xray_Path(waypoints, destination)
+				blockedConnection = path.Blocked:Connect(function(blockedWaypointIndex)
+					if blockedWaypointIndex >= nextWaypointIndex then
+						blockedConnection:Disconnect()
+						BlockedNumber += 1
+						if BlockedNumber >= 8 then
+							TheResult = false
+						end
+						followPath(destination)
+					end
+				end)
+
+				if not reachedConnection then
+					reachedConnection = humanoid.MoveToFinished:Connect(function(reached)
+						if reached and nextWaypointIndex < #waypoints then
+							nextWaypointIndex += 1
+							humanoid:MoveTo(waypoints[nextWaypointIndex].Position)
+						else
+							reachedConnection:Disconnect()
+							blockedConnection:Disconnect()
+							TheResult = true
+						end
+					end)
+				end
+
+				nextWaypointIndex = 2
+				humanoid:MoveTo(waypoints[nextWaypointIndex].Position)
+				if waypoints[nextWaypointIndex].Action == Enum.PathWaypointAction.Jump then humanoid:ChangeState(Enum.HumanoidStateType.Jumping) end
+			else
+				warn("PathFinding Fail\nReason : "..tostring(errorMessage))
+				TheResult = false
+				return
+			end
 		end
+
+		followPath(destination)
+		repeat wait() until TheResult ~= nil
+		for _, v in pairs(Connections) do
+			v:Disconnect()
+		end
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
+		return TheResult
+	end
+	
+	local function MovePath(waypoints)
+		
 	end
 	
 	function Funcs.Teleport()
@@ -659,10 +712,6 @@ spawn(function()
 	end
 
 	local nocons = {}
-
-	------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-	-- @CloneTrooper1019, 2015
-	------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	local c = workspace.CurrentCamera
 	local player = game.Players.LocalPlayer
@@ -732,6 +781,210 @@ spawn(function()
 		if NoclipOn == false then return end
 		if GetDeadState(Player) == false then
 			NoclipOn = false
+		end
+	end
+	
+	local function Draggable(Frame)
+		local UserInputService = game:GetService("UserInputService")
+
+		local gui = Frame
+
+		local dragging
+		local dragInput
+		local dragStart
+		local startPos
+
+		local function update(input)
+			local delta = input.Position - dragStart
+			gui.Position = UDim2.new(startPos.X.Scale, startPos.X.Offset + delta.X, startPos.Y.Scale, startPos.Y.Offset + delta.Y)
+		end
+
+		gui.InputBegan:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+				dragging = true
+				dragStart = input.Position
+				startPos = gui.Position
+
+				input.Changed:Connect(function()
+					if input.UserInputState == Enum.UserInputState.End then
+						dragging = false
+					end
+				end)
+			end
+		end)
+
+		gui.InputChanged:Connect(function(input)
+			if input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch then
+				dragInput = input
+			end
+		end)
+
+		UserInputService.InputChanged:Connect(function(input)
+			if input == dragInput and dragging then
+				update(input)
+			end
+		end)
+	end
+	
+	local function CreateListUI()
+		local NoobList = Instance.new("Frame")
+		local NLsc = Instance.new("ScrollingFrame")
+		local NoobF = Instance.new("Frame")
+		local UICorner = Instance.new("UICorner")
+		local UIAspectRatioConstraint = Instance.new("UIAspectRatioConstraint")
+		local NoobName = Instance.new("TextLabel")
+		local UIAspectRatioConstraint_2 = Instance.new("UIAspectRatioConstraint")
+		local MoveTo = Instance.new("TextButton")
+		local UIAspectRatioConstraint_3 = Instance.new("UIAspectRatioConstraint")
+		local UIListLayout = Instance.new("UIListLayout")
+		local UIAspectRatioConstraint_4 = Instance.new("UIAspectRatioConstraint")
+		local UICorner_2 = Instance.new("UICorner")
+		local Close = Instance.new("TextButton")
+		local UIAspectRatioConstraint_5 = Instance.new("UIAspectRatioConstraint")
+
+		--Properties:
+
+		NoobList.Name = "NoobList"
+		NoobList.AnchorPoint = Vector2.new(0.5, 0.5)
+		NoobList.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		NoobList.Position = UDim2.new(0.5, 0, 0.5, 0)
+		NoobList.Size = UDim2.new(0.484027117, 0, 0.714285731, 0)
+
+		NLsc.Name = "NLsc"
+		NLsc.Parent = NoobList
+		NLsc.Active = true
+		NLsc.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		NLsc.BackgroundTransparency = 1.000
+		NLsc.BorderSizePixel = 0
+		NLsc.Position = UDim2.new(0, 0, 0.100000001, 0)
+		NLsc.Size = UDim2.new(1, 0, 0.899999976, 0)
+		NLsc.ScrollBarThickness = 8
+
+		NoobF.Name = "NoobF"
+		NoobF.Parent = NLsc
+		NoobF.AnchorPoint = Vector2.new(0.5, 0.5)
+		NoobF.BackgroundColor3 = Color3.fromRGB(70, 70, 70)
+		NoobF.Size = UDim2.new(0.99000001, 0, 0.0700000003, 0)
+
+		UICorner.Parent = NoobF
+
+		UIAspectRatioConstraint.Parent = NoobF
+		UIAspectRatioConstraint.AspectRatio = 9.821
+
+		NoobName.Name = "NoobName"
+		NoobName.Parent = NoobF
+		NoobName.AnchorPoint = Vector2.new(0, 0.5)
+		NoobName.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		NoobName.BackgroundTransparency = 1.000
+		NoobName.Position = UDim2.new(0, 0, 0.5, 0)
+		NoobName.Size = UDim2.new(0.808080792, 0, 0.992063463, 0)
+		NoobName.Font = Enum.Font.FredokaOne
+		NoobName.Text = "NoobName : "
+		NoobName.TextColor3 = Color3.fromRGB(255, 255, 255)
+		NoobName.TextScaled = true
+		NoobName.TextSize = 14.000
+		NoobName.TextStrokeTransparency = 0.000
+		NoobName.TextWrapped = true
+		NoobName.TextXAlignment = Enum.TextXAlignment.Left
+
+		UIAspectRatioConstraint_2.Parent = NoobName
+		UIAspectRatioConstraint_2.AspectRatio = 8.000
+
+		MoveTo.Name = "MoveTo"
+		MoveTo.Parent = NoobF
+		MoveTo.AnchorPoint = Vector2.new(1, 0.5)
+		MoveTo.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		MoveTo.BackgroundTransparency = 1.000
+		MoveTo.Position = UDim2.new(1, 0, 0.5, 0)
+		MoveTo.Size = UDim2.new(0.192000002, 0, 1, 0)
+		MoveTo.Font = Enum.Font.GothamBlack
+		MoveTo.Text = "MoveToNoob"
+		MoveTo.TextColor3 = Color3.fromRGB(80, 255, 94)
+		MoveTo.TextScaled = true
+		MoveTo.TextSize = 14.000
+		MoveTo.TextStrokeTransparency = 0.000
+		MoveTo.TextWrapped = true
+
+		UIAspectRatioConstraint_3.Parent = MoveTo
+		UIAspectRatioConstraint_3.AspectRatio = 1.886
+
+		UIListLayout.Parent = NLsc
+		UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+		UIListLayout.Padding = UDim.new(0, 5)
+
+		UIAspectRatioConstraint_4.Parent = NoobList
+		UIAspectRatioConstraint_4.AspectRatio = 1.389
+
+		UICorner_2.CornerRadius = UDim.new(0, 15)
+		UICorner_2.Parent = NoobList
+
+		Close.Name = "Close"
+		Close.Parent = NoobList
+		Close.AnchorPoint = Vector2.new(1, 0)
+		Close.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+		Close.BackgroundTransparency = 1.000
+		Close.Position = UDim2.new(1, 0, 0, 0)
+		Close.Size = UDim2.new(0.192000002, 0, 0.100000001, 0)
+		Close.Font = Enum.Font.GothamBlack
+		Close.Text = "Close"
+		Close.TextColor3 = Color3.fromRGB(255, 57, 57)
+		Close.TextScaled = true
+		Close.TextSize = 14.000
+		Close.TextStrokeTransparency = 0.000
+		Close.TextWrapped = true
+
+		UIAspectRatioConstraint_5.Parent = Close
+		UIAspectRatioConstraint_5.AspectRatio = 2.667
+		return NoobList
+	end
+	
+	function Funcs.NoobMove()
+		local Frame = CreateListUI()
+		Funcs.Wait()
+		NoobFrame:Destroy()
+		Draggable(Frame)
+		Frame.Parent = MainGui
+		Frame.Close.MouseButton1Down:Connect(function()
+			pff:ClearAllChildren()
+			Frame:Destroy()
+		end)
+		local List = Frame:WaitForChild("NLsc"):WaitForChild("NoobF"):Clone()
+		Frame.NLsc.NoobF:Destroy()
+		
+		Frame.NLsc.CanvasSize = UDim2.new(0, 0, 4*(#workspace.Noobs:GetChildren()), 0)
+		
+		if workspace:FindFirstChild("Noobs") == nil then
+			warn("NoobsFolder is not in workspace")
+		else
+			for _, v in pairs(workspace.Noobs:GetChildren()) do
+				if v:FindFirstChild("Rarity") == nil then return end
+				if v.Rarity.Value == 7 then continue end
+				if v:FindFirstChild("GetPart") == nil then continue end
+				local NL = List:Clone()
+				NL:WaitForChild("NoobName").Text = v.Name
+				NL.NoobName.TextColor3 = raritycolors[v.Rarity.Value]
+				NL:WaitForChild("MoveTo").MouseButton1Down:Connect(function()
+					NL.MoveTo.Text = "CreatingPaths"
+					NL.MoveTo.TextColor3 = Color3.fromRGB(255, 255, 74)
+					Player.Character:MoveTo(workspace:FindFirstChildOfClass("SpawnLocation").Position)
+					local SuccessMove = Funcs.PathFinding(v:WaitForChild("GetPart").Position)
+					if not SuccessMove then
+						NL.MoveTo.Text = "Fail"
+						NL.MoveTo.TextColor3 = Color3.fromRGB(255, 82, 82)
+						pcall(function()
+							local Torso = Funcs.GetTorso()
+							Torso.CFrame = v:WaitForChild("GetPart").CFrame
+						end)
+						wait(2)
+						NL.MoveTo.Text = "MoveToNoob"
+						NL.MoveTo.TextColor3 = Color3.fromRGB(80, 255, 94)
+					else
+						NL.MoveTo.Text = "MoveToNoob"
+						NL.MoveTo.TextColor3 = Color3.fromRGB(80, 255, 94)
+					end
+				end)
+				NL.Parent = Frame.NLsc
+			end
 		end
 	end
 
@@ -847,7 +1100,7 @@ spawn(function()
 	keys["h"] = Funcs.GetAllItem
 	keys["y"] = Funcs.GodOn
 	keys["n"] = Funcs.GodOff
-	keys["j"] = Funcs.MoveTNoob
+	keys["j"] = Funcs.NoobMove
 	
 	GodOn.MouseButton1Down:Connect(function()
 		Funcs.GodOn()
@@ -890,7 +1143,7 @@ spawn(function()
 	end)
 	
 	MoveToNoob.MouseButton1Down:Connect(function()
-		Funcs.MoveTNoob()
+		Funcs.NoobMove()
 	end)
 
 	coroutine.resume(coroutine.create(function()
