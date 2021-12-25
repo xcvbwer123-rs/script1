@@ -1,3 +1,8 @@
+-- Gui to Lua
+-- Version: 3.2
+
+-- Instances:
+
 local MainGui = Instance.new("ScreenGui")
 local Frame = Instance.new("Frame")
 local Title = Instance.new("TextLabel")
@@ -9,6 +14,7 @@ local ImageLabel = Instance.new("ImageButton")
 local Offbeam = Instance.new("TextButton")
 local Fly = Instance.new("TextButton")
 local GodOn = Instance.new("TextButton")
+local MoveToNoob = Instance.new("TextButton")
 local GodOff = Instance.new("TextButton")
 local MarkEsp = Instance.new("TextButton")
 local MarkEsp_2 = Instance.new("TextButton")
@@ -16,6 +22,9 @@ local Noclip = Instance.new("TextButton")
 local OffNoclip = Instance.new("TextButton")
 local TPNoob = Instance.new("TextButton")
 local GetAllItem = Instance.new("TextButton")
+local PathAdorn = Instance.new("SphereHandleAdornment")
+
+--Properties:
 
 local s = pcall(function()
 	game.CoreGui.Name = game.CoreGui.Name
@@ -29,6 +38,13 @@ else
 end
 MainGui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 MainGui.ResetOnSpawn = false
+
+local pff = Instance.new("Folder", workspace.Terrain)
+pff.Name = "PathFinding"
+
+pcall(function()
+	pff.Parent = game.CoreGui
+end)
 
 Frame.Parent = MainGui
 Frame.BackgroundColor3 = Color3.fromRGB(47, 47, 47)
@@ -52,6 +68,8 @@ Title.TextScaled = true
 Title.TextSize = 20.000
 Title.TextStrokeColor3 = Color3.fromRGB(33, 140, 255)
 Title.TextWrapped = true
+
+PathAdorn.AlwaysOnTop = true
 
 Main.Name = "Main"
 Main.Parent = Frame
@@ -135,6 +153,20 @@ GodOn.Text = "God Mode On [Y]"
 GodOn.TextColor3 = Color3.fromRGB(252, 255, 64)
 GodOn.TextSize = 20.000
 GodOn.TextWrapped = true
+
+MoveToNoob.Name = "MoveToNoob"
+MoveToNoob.Parent = Main
+MoveToNoob.BackgroundColor3 = Color3.fromRGB(47, 47, 47)
+MoveToNoob.BorderColor3 = Color3.fromRGB(0, 154, 255)
+MoveToNoob.BorderSizePixel = 5
+MoveToNoob.Position = UDim2.new(0, 0, 0.215000004, 0)
+MoveToNoob.Size = UDim2.new(1.005, 0, 0.0799999982, 0)
+MoveToNoob.ZIndex = 4
+MoveToNoob.Font = Enum.Font.SciFi
+MoveToNoob.Text = "Move To Noob [J]"
+MoveToNoob.TextColor3 = Color3.fromRGB(248, 171, 255)
+MoveToNoob.TextSize = 20.000
+MoveToNoob.TextWrapped = true
 
 GodOff.Name = "GodOff"
 GodOff.Parent = Main
@@ -481,7 +513,91 @@ spawn(function()
 			end
 		end
 	end
+	
+	function Funcs.PathFinding(destination: Vector3)
+		Funcs.Wait()
+		pff:ClearAllChildren()
+		local pathfindingService = game:GetService("PathfindingService")
+		
+		local humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+		local body = Funcs.GetTorso()
+		local TS = game:GetService("TweenService")
+		local info  = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 0, false, 0)
+		local path = pathfindingService:CreatePath()
 
+		path:ComputeAsync(body.Position, destination)
+		
+		local waypoints = path:GetWaypoints()
+
+		local function turnto(RootPart, position)
+			RootPart.CFrame=CFrame.new(RootPart.CFrame.p,Vector3.new(position.X,position.Y,position.Z)) * CFrame.new(0, 0, 0)
+		end
+
+		for _, v in pairs(waypoints) do
+			local plt = Instance.new("Part", pff)
+			local Av = Instance.new("StringValue", plt)
+			local Adorn = PathAdorn:Clone()
+			Av.Name = "Action"
+			Av.Value = tostring(v.Action)
+			plt.Anchored = true
+			plt.Size = Vector3.new()
+			plt.BrickColor = BrickColor.random()
+			plt.CFrame = CFrame.new(v.Position.x,v.Position.y, v.Position.z)
+			turnto(plt, destination)
+			Adorn.Color3 = plt.Color
+			Adorn.Adornee = plt
+			Adorn.Parent = plt
+			Adorn.Radius = 1.5
+			plt.Material = Enum.Material.Neon
+			plt.CanCollide = false
+			plt.Shape = "Ball"
+		end
+
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+		for k, waypoint in pairs(pff:GetChildren()) do
+			--local TW = TS:Create(body, info, {CFrame = waypoint.CFrame * CFrame.new(0, 10, 0)})
+			--TW:Play()
+
+			humanoid:MoveTo(waypoint.Position)
+			if waypoint:FindFirstChild("Action").Value == tostring(Enum.PathWaypointAction.Jump) then
+				humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+			end
+			humanoid.MoveToFinished:Wait()
+
+			--TW.Completed:Wait()
+		end
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
+		return
+	end
+	
+	function Funcs.MoveTNoob()
+		Funcs.Wait()
+		if workspace:FindFirstChild("Noobs", true) then
+			local Hum = Player.Character:FindFirstChildOfClass("Humanoid")
+			Hum:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+			for _, v in pairs(workspace.Noobs:GetChildren()) do
+				local getpart = v:FindFirstChild("GetPart", true)
+				if not getpart then
+					continue
+				else
+					if getpart.Parent.Rarity.Value == 7 then
+						warn("Limited")
+						continue
+					end
+					local Torso = Funcs.GetTorso()
+					pcall(function()
+						Torso.CFrame = workspace.SpawnLocation.CFrame
+					end)
+					Funcs.PathFinding(getpart.Position)
+					wait(0.2)
+				end
+			end
+			Hum:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
+		else
+			warn("Noobs Folder is not found in WorkSpace")
+		end
+	end
+	
 	function Funcs.Teleport()
 		Funcs.Wait()
 		if workspace:FindFirstChild("Noobs", true) then
@@ -543,6 +659,10 @@ spawn(function()
 	end
 
 	local nocons = {}
+
+	------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+	-- @CloneTrooper1019, 2015
+	------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 	local c = workspace.CurrentCamera
 	local player = game.Players.LocalPlayer
@@ -614,7 +734,38 @@ spawn(function()
 			NoclipOn = false
 		end
 	end
-		
+
+	--spawn(function()
+	--	while true do
+	--		if GetDeadState(Player) == false then
+	--			if NoclipOn then
+	--				if GetRigType() == Enum.HumanoidRigType.R6 then
+	--					Player.Character:FindFirstChild("Torso").CanCollide            = false
+	--					Player.Character:FindFirstChild("Head").CanCollide             = false
+	--					Player.Character:FindFirstChild("HumanoidRootPart").CanCollide = false
+	--				elseif GetRigType() == Enum.HumanoidRigType.R15 then
+	--					Player.Character:FindFirstChild("UpperTorso").CanCollide       = false
+	--					Player.Character:FindFirstChild("LowerTorso").CanCollide       = false
+	--					Player.Character:FindFirstChild("Head").CanCollide             = false
+	--					Player.Character:FindFirstChild("HumanoidRootPart").CanCollide = false
+	--				end
+	--			else
+	--				if GetRigType() == Enum.HumanoidRigType.R6 then
+	--					Player.Character:FindFirstChild("Torso").CanCollide            = true
+	--					Player.Character:FindFirstChild("Head").CanCollide             = true
+	--					Player.Character:FindFirstChild("HumanoidRootPart").CanCollide = true
+	--				elseif GetRigType() == Enum.HumanoidRigType.R15 then
+	--					Player.Character:FindFirstChild("UpperTorso").CanCollide       = true
+	--					Player.Character:FindFirstChild("LowerTorso").CanCollide       = true
+	--					Player.Character:FindFirstChild("Head").CanCollide             = true
+	--					Player.Character:FindFirstChild("HumanoidRootPart").CanCollide = true
+	--				end
+	--			end
+	--		end
+	--		Swait()
+	--	end
+	--end)
+
 	local FlyOn = false
 
 	function Funcs.Fly()
@@ -696,7 +847,8 @@ spawn(function()
 	keys["h"] = Funcs.GetAllItem
 	keys["y"] = Funcs.GodOn
 	keys["n"] = Funcs.GodOff
-
+	keys["j"] = Funcs.MoveTNoob
+	
 	GodOn.MouseButton1Down:Connect(function()
 		Funcs.GodOn()
 	end)
@@ -735,6 +887,10 @@ spawn(function()
 
 	GetAllItem.MouseButton1Down:Connect(function()
 		Funcs.GetAllItem()
+	end)
+	
+	MoveToNoob.MouseButton1Down:Connect(function()
+		Funcs.MoveTNoob()
 	end)
 
 	coroutine.resume(coroutine.create(function()
