@@ -615,14 +615,6 @@ spawn(function()
 		local Keys = {
 			"w","a","s","d","up","down"
 		}
-
-		mouse.KeyDown:Connect(function(key)
-			local key = key:lower()
-			if table.find(Keys, key) then
-				pff:ClearAllChildren()
-				return false
-			end
-		end)
 		
 		local path = PathfindingService:CreatePath({
 			AgentRadius = 5,
@@ -644,6 +636,14 @@ spawn(function()
 		local blockedConnection
 		
 		local BlockedNumber = 0
+		
+		mouse.KeyDown:Connect(function(key)
+			local key = key:lower()
+			if table.find(Keys, key) then
+				pff:ClearAllChildren()
+				TheResult = false
+			end
+		end)
 		
 		humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
 		
@@ -668,10 +668,6 @@ spawn(function()
 					if blockedWaypointIndex >= nextWaypointIndex then
 						blockedConnection:Disconnect()
 						BlockedNumber += 1
-						if BlockedNumber >= 8 then
-							TheResult = "Normal"
-							return
-						end
 						followPath(destination)
 					end
 				end)
@@ -681,6 +677,13 @@ spawn(function()
 						if reached and nextWaypointIndex < #waypoints then
 							nextWaypointIndex += 1
 							humanoid:MoveTo(waypoints[nextWaypointIndex].Position)
+							pcall(function()
+								if (waypoints[nextWaypointIndex].Position - waypoints[nextWaypointIndex+1].Position).Magnitude >= 10 or (waypoints[nextWaypointIndex].Position - waypoints[nextWaypointIndex+1].Position).Magnitude <= -10 then 
+									TheResult = false
+									return
+								end
+								--print((waypoints[nextWaypointIndex].Position - waypoints[nextWaypointIndex+1].Position).Magnitude)
+							end)
 						else
 							reachedConnection:Disconnect()
 							blockedConnection:Disconnect()
@@ -703,6 +706,7 @@ spawn(function()
 		repeat wait() until TheResult ~= nil
 		for _, v in pairs(Connections) do
 			v:Disconnect()
+			print("Jump Disconnected")
 		end
 		humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
 		return TheResult
