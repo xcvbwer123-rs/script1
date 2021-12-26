@@ -547,6 +547,67 @@ spawn(function()
 		end
 	end
 	
+	local function NormalPathFinding(destination)
+		-- script is placed inside a movable NPC model
+
+		-- get pathfinding service
+		local pathfindingService = game:GetService("PathfindingService")
+
+		local pff = Instance.new("Folder", workspace.Terrain)
+
+		-- Variables for NPC humanoid, torso, and destination
+		local humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+		local body = Funcs.GetTorso()
+		local TS = game:GetService("TweenService")
+		local info  = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 0, false, 0)
+
+		-- create path object
+		local path = pathfindingService:CreatePath()
+
+		-- compute a path
+		path:ComputeAsync(body.Position, destination)
+
+		-- get the waypoints table
+		local waypoints = path:GetWaypoints()
+
+		-- iterate through all waypoints, and jump when necessary
+
+		local function turnto(RootPart, position)
+			RootPart.CFrame=CFrame.new(RootPart.CFrame.p,Vector3.new(position.X,position.Y,position.Z)) * CFrame.new(0, 0, 0)
+		end
+
+		for _, v in pairs(waypoints) do
+			local plt = Instance.new("Part", pff)
+			local Av = Instance.new("StringValue", plt)
+			Av.Name = "Action"
+			Av.Value = tostring(v.Action)
+			plt.Anchored = true
+			plt.Size = Vector3.new(1, 1, 1)
+			plt.BrickColor = BrickColor.random()
+			plt.CFrame = CFrame.new(v.Position.x,v.Position.y, v.Position.z)
+			turnto(plt, destination)
+			plt.Material = Enum.Material.Neon
+			plt.CanCollide = false
+			plt.Shape = "Ball"
+		end
+
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+		for k, waypoint in pairs(pff:GetChildren()) do
+			--local TW = TS:Create(body, info, {CFrame = waypoint.CFrame * CFrame.new(0, 10, 0)})
+			--TW:Play()
+			--change humanoid state to jump if necessary
+
+			humanoid:MoveTo(waypoint.Position)
+			if waypoint:FindFirstChild("Action").Value == tostring(Enum.PathWaypointAction.Jump) then
+				humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+			end
+			humanoid.MoveToFinished:Wait()
+
+			--TW.Completed:Wait()
+		end
+		humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
+	end
+	
 	local Connections = {}
 	
 	function Funcs.PathFinding(destination: Vector3)
@@ -609,7 +670,8 @@ spawn(function()
 						blockedConnection:Disconnect()
 						BlockedNumber += 1
 						if BlockedNumber >= 8 then
-							TheResult = false
+							NormalPathFinding(destination)
+							return
 						end
 						followPath(destination)
 					end
