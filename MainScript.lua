@@ -547,68 +547,67 @@ spawn(function()
 		end
 	end
 	
-	local function NormalPathFinding(destination)
-		-- script is placed inside a movable NPC model
-
-		-- get pathfinding service
-		local pathfindingService = game:GetService("PathfindingService")
-
-		local pff = Instance.new("Folder", workspace.Terrain)
-
-		-- Variables for NPC humanoid, torso, and destination
-		local humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
-		local body = Funcs.GetTorso()
-		local TS = game:GetService("TweenService")
-		local info  = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 0, false, 0)
-
-		-- create path object
-		local path = pathfindingService:CreatePath()
-
-		-- compute a path
-		path:ComputeAsync(body.Position, destination)
-
-		-- get the waypoints table
-		local waypoints = path:GetWaypoints()
-
-		-- iterate through all waypoints, and jump when necessary
-
-		local function turnto(RootPart, position)
-			RootPart.CFrame=CFrame.new(RootPart.CFrame.p,Vector3.new(position.X,position.Y,position.Z)) * CFrame.new(0, 0, 0)
-		end
-
-		for _, v in pairs(waypoints) do
-			local plt = Instance.new("Part", pff)
-			local Av = Instance.new("StringValue", plt)
-			Av.Name = "Action"
-			Av.Value = tostring(v.Action)
-			plt.Anchored = true
-			plt.Size = Vector3.new(1, 1, 1)
-			plt.BrickColor = BrickColor.random()
-			plt.CFrame = CFrame.new(v.Position.x,v.Position.y, v.Position.z)
-			turnto(plt, destination)
-			plt.Material = Enum.Material.Neon
-			plt.CanCollide = false
-			plt.Shape = "Ball"
-		end
-
-		humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
-		for k, waypoint in pairs(pff:GetChildren()) do
-			--local TW = TS:Create(body, info, {CFrame = waypoint.CFrame * CFrame.new(0, 10, 0)})
-			--TW:Play()
-			--change humanoid state to jump if necessary
-
-			humanoid:MoveTo(waypoint.Position)
-			if waypoint:FindFirstChild("Action").Value == tostring(Enum.PathWaypointAction.Jump) then
-				humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
-			end
-			humanoid.MoveToFinished:Wait()
-
-			--TW.Completed:Wait()
-		end
-		humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
-	end
-	
 	local Connections = {}
+	
+	--local function NormalPathFinding(destination)
+	--	-- script is placed inside a movable NPC model
+
+	--	-- get pathfinding service
+	--	local pathfindingService = game:GetService("PathfindingService")
+
+	--	local pff = Instance.new("Folder", workspace.Terrain)
+
+	--	-- Variables for NPC humanoid, torso, and destination
+	--	local humanoid = Player.Character:FindFirstChildOfClass("Humanoid")
+	--	local body = Funcs.GetTorso()
+	--	local TS = game:GetService("TweenService")
+	--	local info  = TweenInfo.new(0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut, 0, false, 0)
+
+	--	-- create path object
+	--	local path = pathfindingService:CreatePath()
+
+	--	-- compute a path
+	--	path:ComputeAsync(body.Position, destination)
+
+	--	-- get the waypoints table
+	--	local waypoints = path:GetWaypoints()
+
+	--	-- iterate through all waypoints, and jump when necessary
+
+	--	local function turnto(RootPart, position)
+	--		RootPart.CFrame=CFrame.new(RootPart.CFrame.p,Vector3.new(position.X,position.Y,position.Z)) * CFrame.new(0, 0, 0)
+	--	end
+
+	--	Connection = Player.Character:WaitForChild("HumanoidRootPart").Touched:Connect(function(v)
+	--		if not v:IsDescendantOf(Player.Character) then
+	--			humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+	--		end
+	--	end)
+
+	--	table.insert(Connections, Connection)
+
+	--	Xray_Path(waypoints, destination)
+
+	--	humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, false)
+	--	for k, waypoint in pairs(pff:GetChildren()) do
+	--		--local TW = TS:Create(body, info, {CFrame = waypoint.CFrame * CFrame.new(0, 10, 0)})
+	--		--TW:Play()
+	--		--change humanoid state to jump if necessary
+
+	--		humanoid:MoveTo(waypoint.Position)
+	--		if waypoint:FindFirstChild("Action").Value == tostring(Enum.PathWaypointAction.Jump) then
+	--			humanoid:ChangeState(Enum.HumanoidStateType.Jumping)
+	--		end
+	--		humanoid.MoveToFinished:Wait()
+
+	--		--TW.Completed:Wait()
+	--	end
+	--	humanoid:SetStateEnabled(Enum.HumanoidStateType.Dead, true)
+		
+	--	for _, v in pairs(Connections) do
+	--		v:Disconnect()
+	--	end
+	--end
 	
 	function Funcs.PathFinding(destination: Vector3)
 		local PathfindingService = game:GetService("PathfindingService")
@@ -670,7 +669,7 @@ spawn(function()
 						blockedConnection:Disconnect()
 						BlockedNumber += 1
 						if BlockedNumber >= 8 then
-							NormalPathFinding(destination)
+							TheResult = "Normal"
 							return
 						end
 						followPath(destination)
@@ -1030,19 +1029,24 @@ spawn(function()
 					NL.MoveTo.TextColor3 = Color3.fromRGB(255, 255, 74)
 					Player.Character:MoveTo(workspace:FindFirstChildOfClass("SpawnLocation").Position)
 					local SuccessMove = Funcs.PathFinding(v:WaitForChild("GetPart").Position)
-					if not SuccessMove then
-						NL.MoveTo.Text = "Fail"
-						NL.MoveTo.TextColor3 = Color3.fromRGB(255, 82, 82)
-						pcall(function()
-							local Torso = Funcs.GetTorso()
-							Torso.CFrame = v:WaitForChild("GetPart").CFrame
-						end)
-						wait(2)
-						NL.MoveTo.Text = "MoveToNoob"
-						NL.MoveTo.TextColor3 = Color3.fromRGB(80, 255, 94)
+					if false then
+						--NormalPathFinding(v:WaitForChild("GetPart").Position)
+						--Player.Character:MoveTo(workspace:FindFirstChildOfClass("SpawnLocation").Position)
 					else
-						NL.MoveTo.Text = "MoveToNoob"
-						NL.MoveTo.TextColor3 = Color3.fromRGB(80, 255, 94)
+						if not SuccessMove then
+							NL.MoveTo.Text = "Fail"
+							NL.MoveTo.TextColor3 = Color3.fromRGB(255, 82, 82)
+							pcall(function()
+								local Torso = Funcs.GetTorso()
+								Torso.CFrame = v:WaitForChild("GetPart").CFrame
+							end)
+							wait(2)
+							NL.MoveTo.Text = "MoveToNoob"
+							NL.MoveTo.TextColor3 = Color3.fromRGB(80, 255, 94)
+						else
+							NL.MoveTo.Text = "MoveToNoob"
+							NL.MoveTo.TextColor3 = Color3.fromRGB(80, 255, 94)
+						end	
 					end
 				end)
 				NL.Parent = Frame.NLsc
