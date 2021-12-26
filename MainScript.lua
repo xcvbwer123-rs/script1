@@ -18,6 +18,7 @@ local MoveToNoob = Instance.new("TextButton")
 local GodOff = Instance.new("TextButton")
 local MarkEsp = Instance.new("TextButton")
 local MarkEsp_2 = Instance.new("TextButton")
+local BreakGame = Instance.new("TextButton")
 local Noclip = Instance.new("TextButton")
 local OffNoclip = Instance.new("TextButton")
 local TPNoob = Instance.new("TextButton")
@@ -132,6 +133,20 @@ GetAllItem.Text = "Get All Items [H]"
 GetAllItem.TextColor3 = Color3.fromRGB(210, 75, 255)
 GetAllItem.TextSize = 20.000
 GetAllItem.TextWrapped = true
+
+BreakGame.Name = "DestroyGame"
+BreakGame.Parent = Main
+BreakGame.BackgroundColor3 = Color3.fromRGB(47, 47, 47)
+BreakGame.BorderColor3 = Color3.fromRGB(0, 154, 255)
+BreakGame.BorderSizePixel = 5
+BreakGame.Position = UDim2.new(0, 0, 0.215000004, 0)
+BreakGame.Size = UDim2.new(1.005, 0, 0.0799999982, 0)
+BreakGame.ZIndex = 4
+BreakGame.Font = Enum.Font.SciFi
+BreakGame.Text = "Destroy Game [L]"
+BreakGame.TextColor3 = Color3.fromRGB(175, 183, 255)
+BreakGame.TextSize = 20.000
+BreakGame.TextWrapped = true
 
 Fly.Name = "Fly"
 Fly.Parent = Main
@@ -1158,6 +1173,30 @@ spawn(function()
 			warn("Item Folder Not Find.")
 		end
 	end
+	
+	function Funcs.DestroyItemOnServer()
+		Funcs.Wait()
+		local ItemRemote = game:FindFirstChild("DestroyItemOnServer", true)
+		if ItemRemote then
+			game:GetService("StarterGui"):SetCore("SendNotification", {
+				Title = "Game Is Start Destroying";
+				Text = "Check Game";
+				Duration = 8;
+			})
+			game:GetService("Lighting"):WaitForChild("Sounds"):WaitForChild("Win"):Play()
+			for _, v in pairs(workspace:GetChildren()) do
+				ItemRemote:FireServer(v)
+				wait(1)
+			end
+			game:GetService("Lighting"):WaitForChild("Sounds"):WaitForChild("Mythic"):Play()
+			for _, v in pairs(game:GetService("Players"):GetChildren()) do
+				ItemRemote:FireServer(v)
+				wait(1)
+			end
+		else
+			warn("Remote Not Find.")
+		end
+	end
 
 	keys["q"] = Funcs.Teleport
 	keys["e"] = Funcs.BeamEsp
@@ -1171,9 +1210,14 @@ spawn(function()
 	keys["y"] = Funcs.GodOn
 	keys["n"] = Funcs.GodOff
 	keys["j"] = Funcs.NoobMove
+	keys["l"] = Funcs.DestroyItemOnServer
 	
 	GodOn.MouseButton1Down:Connect(function()
 		Funcs.GodOn()
+	end)
+	
+	BreakGame.MouseButton1Down:Connect(function()
+		Funcs.DestroyItemOnServer()
 	end)
 
 	GodOff.MouseButton1Down:Connect(function()
@@ -1304,15 +1348,17 @@ spawn(function()
 	local db = false
 
 	function Funcs.KeyDown(key)
-		if db then return end
-		db = true
-		local key = string.lower(key)
-		KeyDown = true
-		if keys[key] ~= nil then
-			keys[key]()
-		end
-		wait(0.5)
-		db = false
+		pcall(function()
+			if db then return end
+			db = true
+			local key = string.lower(key)
+			KeyDown = true
+			if keys[key] ~= nil then
+				keys[key]()
+			end
+			wait(0.5)
+			db = false
+		end)
 	end
 
 	mouse.KeyUp:connect(function(key)
